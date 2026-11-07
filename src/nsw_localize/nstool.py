@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Sequence
@@ -131,6 +132,17 @@ def resolve_keyset(override: Optional[Path] = None) -> Path:
     return default_keyset.resolve()
 
 
+def is_executable_file(path: Path) -> bool:
+    """Check whether a path points to an executable regular file."""
+    if not path.is_file():
+        return False
+    if sys.platform == "win32":
+        # On Windows, os.access(..., os.X_OK) checks extensions in PATHEXT
+        # or may return true for readable files. Verify X_OK or known executable suffix.
+        return path.suffix.lower() == ".exe" or os.access(path, os.X_OK)
+    return os.access(path, os.X_OK)
+
+
 def resolve_nstool(
     override: Optional[Path] = None, *, repository_root: Optional[Path] = None
 ) -> Path:
@@ -138,21 +150,44 @@ def resolve_nstool(
 
     An override is intentional and never falls back to the bundled executable:
     a spelling mistake in ``--nstool`` must be reported rather than hidden.
+    When no override is provided, selects the appropriate bundled binary for
+    the current operating system (nstool.exe on Windows, nstool on macOS/POSIX),
+    falling back to the other candidate if present.
     """
-    candidate = override if override is not None else (repository_root or Path.cwd()) / "nstool"
-    candidate = candidate.expanduser()
+    if override is not None:
+        candidate = override.expanduser()
+        if not candidate.is_file():
+            raise NstoolError(
+                "Unable to find a runnable NSTool executable at "
+                f"{candidate}. Provide a compatible executable with --nstool "
+                "(looked for --nstool path)."
+            )
+        if not is_executable_file(candidate):
+            raise NstoolError(
+                f"NSTool executable is not runnable: {candidate}. "
+                "Grant execute permission or provide a compatible executable with --nstool."
+            )
+        return candidate.resolve()
 
-    if not candidate.is_file():
-        source = "--nstool path" if override is not None else "bundled nstool"
-        raise NstoolError(
-            "Unable to find a runnable NSTool executable at "
-            f"{candidate}. Provide a compatible executable with --nstool "
-            f"(looked for {source})."
-        )
-    if not os.access(candidate, os.X_OK):
-        raise NstoolError(
-            f"NSTool executable is not runnable: {candidate}. "
-            "Grant execute permission or provide a compatible executable with --nstool."
-        )
+    search_dir = (repository_root or Path.cwd()).expanduser()
+    if sys.platform == "win32":
+        candidates = ["nstool.exe", "nstool"]
+    else:
+        candidates = ["nstool", "nstool.exe"]
 
-    return candidate.resolve()
+    for name in candidates:
+        candidate = search_dir / name
+        if candidate.is_file():
+            if not is_executable_file(candidate):
+                raise NstoolError(
+                    f"NSTool executable is not runnable: {candidate}. "
+                    "Grant execute permission or provide a compatible executable with --nstool."
+                )
+            return candidate.resolve()
+
+    primary_target = search_dir / candidates[0]
+    raise NstoolError(
+        "Unable to find a runnable NSTool executable at "
+        f"{primary_target}. Provide a compatible executable with --nstool "
+        f"(looked for bundled {candidates[0]})."
+    )

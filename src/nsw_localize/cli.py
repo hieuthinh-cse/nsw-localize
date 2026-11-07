@@ -86,7 +86,7 @@ def _add_common_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--nstool",
         type=Path,
-        help="Path to a compatible NSTool executable (defaults to ./nstool).",
+        help="Path to a compatible NSTool executable (defaults to ./nstool.exe on Windows, ./nstool on macOS/Linux).",
     )
     parser.add_argument(
         "--overwrite",

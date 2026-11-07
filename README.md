@@ -7,7 +7,7 @@ Chỉ sử dụng với game, firmware và keyset bạn tự dump từ thiết b
 ## Yêu cầu
 
 - [uv](https://docs.astral.sh/uv/) và Python 3.9 trở lên.
-- Một file `nstool` tương thích với hệ điều hành. Mặc định CLI tìm `./nstool` tại thư mục đang chạy; dùng `--nstool PATH` để chọn binary khác.
+- File binary `nstool` tương thích với hệ điều hành. Mặc định CLI tự nhận diện `./nstool.exe` trên Windows hoặc `./nstool` trên macOS/Linux tại thư mục dự án; dùng `--nstool PATH` nếu muốn chỉ định đường dẫn binary khác.
 - Với NCA được mã hoá: keyset hợp lệ (ví dụ `prod.keys`) bạn tự dump. Không commit keyset vào Git.
 
 ## Chạy CLI

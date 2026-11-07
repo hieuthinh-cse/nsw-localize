@@ -34,6 +34,14 @@ class CliTests(unittest.TestCase):
         self.assertIn("nsp", stdout.getvalue())
         self.assertIn("nca", stdout.getvalue())
 
+        # Test nstool option help describes platform defaults
+        stdout = io.StringIO()
+        with self.assertRaises(SystemExit) as exit_check, redirect_stdout(stdout):
+            parser.parse_args(["unpack", "nsp", "--help"])
+        self.assertEqual(exit_check.exception.code, 0)
+        self.assertIn("nstool.exe on Windows", stdout.getvalue())
+        self.assertIn("nstool on macOS/Linux", stdout.getvalue())
+
     def test_direct_nsp_without_unpack_fails(self) -> None:
         stderr = io.StringIO()
         with self.assertRaises(SystemExit) as exit_check, redirect_stderr(stderr):

@@ -32,8 +32,62 @@ class ResolveNstoolTests(unittest.TestCase):
             executable.write_text("#!/bin/sh\n", encoding="utf-8")
             executable.chmod(executable.stat().st_mode | os.X_OK)
 
-            with patch("nsw_localize.nstool.os.access", return_value=True):
+            with (
+                patch("sys.platform", "darwin"),
+                patch("nsw_localize.nstool.os.access", return_value=True),
+            ):
                 self.assertEqual(resolve_nstool(repository_root=root), executable.resolve())
+
+    def test_resolves_nstool_exe_on_windows(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            exe = root / "nstool.exe"
+            exe.write_bytes(b"MZ\x00\x00")
+            nix = root / "nstool"
+            nix.write_text("#!/bin/sh\n", encoding="utf-8")
+
+            with patch("sys.platform", "win32"):
+                self.assertEqual(resolve_nstool(repository_root=root), exe.resolve())
+
+    def test_resolves_nstool_on_posix_when_both_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            exe = root / "nstool.exe"
+            exe.write_bytes(b"MZ\x00\x00")
+            nix = root / "nstool"
+            nix.write_text("#!/bin/sh\n", encoding="utf-8")
+            nix.chmod(nix.stat().st_mode | os.X_OK)
+
+            with (
+                patch("sys.platform", "darwin"),
+                patch("nsw_localize.nstool.os.access", return_value=True),
+            ):
+                self.assertEqual(resolve_nstool(repository_root=root), nix.resolve())
+
+    def test_fallback_to_nstool_on_windows_if_exe_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            nix = root / "nstool"
+            nix.write_text("#!/bin/sh\n", encoding="utf-8")
+
+            with (
+                patch("sys.platform", "win32"),
+                patch("nsw_localize.nstool.os.access", return_value=True),
+            ):
+                self.assertEqual(resolve_nstool(repository_root=root), nix.resolve())
+
+    def test_fallback_to_exe_on_posix_if_nix_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            exe = root / "nstool.exe"
+            exe.write_bytes(b"MZ\x00\x00")
+            exe.chmod(exe.stat().st_mode | os.X_OK)
+
+            with (
+                patch("sys.platform", "linux"),
+                patch("nsw_localize.nstool.os.access", return_value=True),
+            ):
+                self.assertEqual(resolve_nstool(repository_root=root), exe.resolve())
 
     def test_uses_explicit_executable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -43,6 +97,19 @@ class ResolveNstoolTests(unittest.TestCase):
 
             with patch("nsw_localize.nstool.os.access", return_value=True):
                 self.assertEqual(resolve_nstool(executable), executable.resolve())
+
+    def test_explicit_override_not_swapped_with_exe(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "nstool.exe").write_bytes(b"MZ\x00\x00")
+            # User specifically passed path ending with "nstool" which does not exist
+            missing_override = root / "nstool"
+
+            with (
+                patch("sys.platform", "win32"),
+                self.assertRaisesRegex(NstoolError, "--nstool"),
+            ):
+                resolve_nstool(missing_override)
 
     def test_rejects_missing_executable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -57,7 +124,11 @@ class ResolveNstoolTests(unittest.TestCase):
             executable.write_text("not executable", encoding="utf-8")
             executable.chmod(0o600)
 
-            with self.assertRaisesRegex(NstoolError, "not runnable"):
+            with (
+                patch("sys.platform", "darwin"),
+                patch("nsw_localize.nstool.os.access", return_value=False),
+                self.assertRaisesRegex(NstoolError, "not runnable"),
+            ):
                 resolve_nstool(executable)
 
 

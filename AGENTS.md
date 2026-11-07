@@ -7,8 +7,8 @@ Game Switch lưu text trong các file được đóng gói (NCA → RomFS/ExeFS)
 ## Bước 1: Chuẩn bị
 
 - **prod.keys** và **title.keys** (đặt tại `~/.switch/` để CLI tự động nhận diện khóa giải mã).
-- **CLI nội bộ `nsl`** (chạy qua `uv run nsl` hoặc `.venv/bin/nsl`).
-- **LƯU Ý QUAN TRỌNG:** Tuyệt đối không gọi trực tiếp binary `nstool`. Mọi thao tác trích xuất và giải mã bắt buộc phải thực hiện thông qua CLI `nsl`.
+- **CLI nội bộ `nsl`** (chạy qua `uv run nsl` hoặc `.venv/bin/nsl`). CLI tự động nhận diện binary phù hợp theo hệ điều hành (`nstool.exe` trên Windows, `nstool` trên macOS/POSIX).
+- **LƯU Ý QUAN TRỌNG:** Tuyệt đối không gọi trực tiếp binary `nstool` hay `nstool.exe`. Mọi thao tác trích xuất và giải mã bắt buộc phải thực hiện thông qua CLI `nsl`.
 - Font hỗ trợ tiếng Việt (có dấu), vd: Noto Sans.
 
 ## Bước 2: Giải nén NSP và NCA (Bắt buộc dùng CLI `nsl`)
