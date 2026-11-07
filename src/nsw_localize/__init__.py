@@ -1,0 +1,1 @@
+"""Nintendo Switch localization helpers."""

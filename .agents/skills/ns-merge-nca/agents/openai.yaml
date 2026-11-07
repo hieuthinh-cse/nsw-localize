@@ -1,0 +1,4 @@
+interface:
+  display_name: "Merge Switch NCAs"
+  short_description: "Merge Switch base/update NCAs into RomFS"
+  default_prompt: "Merge Switch base and update NCAs into a complete RomFS using the nsl CLI."

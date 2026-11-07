@@ -1,4 +1,13 @@
 # Local Nintendo Switch decryption keys must not be committed.
 prod.keys
 title.keys
-.agents/skills/switch-nca-unpack/keys/
+.agents/skills/ns-unpack/keys/
+base/
+
+# Python environments and generated extraction data.
+.venv/
+__pycache__/
+*.py[cod]
+extracted/
+.DS_Store
+

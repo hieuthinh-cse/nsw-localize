@@ -6,22 +6,45 @@ Game Switch lưu text trong các file được đóng gói (NCA → RomFS/ExeFS)
 
 ## Bước 1: Chuẩn bị
 
-- **prod.keys** và **title.keys** (dump từ chính máy Switch của bạn bằng Lockpick_RCM).
-- **Hactool** hoặc **hactoolnet**: giải mã NCA.
-- **NSC_Builder** hoặc **nsZip/NSP Tool**: trích xuất NSP.
-- **Hactool/SwitchToolbox**, **Atmosphere CFW** trên máy.
-- Công cụ tuỳ game: **Notepad++/VS Code**, **HxD**, **Kuriimu2**, **Unity AssetStudio / UABEA** (game Unity), **Switch Toolbox**.
+- **prod.keys** và **title.keys** (đặt tại `~/.switch/` để CLI tự động nhận diện khóa giải mã).
+- **CLI nội bộ `nsl`** (chạy qua `uv run nsl` hoặc `.venv/bin/nsl`).
+- **LƯU Ý QUAN TRỌNG:** Tuyệt đối không gọi trực tiếp binary `nstool`. Mọi thao tác trích xuất và giải mã bắt buộc phải thực hiện thông qua CLI `nsl`.
 - Font hỗ trợ tiếng Việt (có dấu), vd: Noto Sans.
 
-## Bước 2: Giải nén NSP
+## Bước 2: Giải nén NSP và NCA (Bắt buộc dùng CLI `nsl`)
 
-1. Dùng NSC_Builder hoặc `hactoolnet` để giải NSP ra các file NCA.
-2. Xác định NCA loại **Program** (chứa exefs + romfs):
+Dự án đã xây dựng sẵn CLI `nsl` (wrapper chuẩn hóa quanh engine giải mã) để trích xuất nội dung:
+
+1. **Giải nén NSP ra các file NCA:**
+   ```sh
+   uv run nsl unpack nsp "path/to/game.nsp" --output extracted/nsp_out
    ```
-   hactoolnet -t pfs0 game.nsp --outdir=nsp_out
-   hactoolnet -t nca --romfsdir=romfs --exefsdir=exefs ten_file.nca
-   ```
-3. Nếu game có **Update/DLC**, giải nén cả hai. Bản update ghi đè nội dung bản gốc, nên text thường nằm ở bản update mới nhất.
+   Lệnh sẽ trích xuất container PFS0 và liệt kê danh sách các file `.nca` (Program, Control, Manual, Metadata) cùng file ticket (`.tik`).
+
+2. **Giải mã và trích xuất RomFS / ExeFS từ NCA:**
+   - Trích xuất phân vùng RomFS (`/1`):
+     ```sh
+     uv run nsl unpack nca extracted/nsp_out/<program>.nca \
+       --keyset "path/to/prod.keys" \
+       --virtual-path /1 \
+       --output extracted/romfs
+     ```
+   - Trích xuất phân vùng ExeFS (`/0`):
+     ```sh
+     uv run nsl unpack nca extracted/nsp_out/<program>.nca \
+       --keyset "path/to/prod.keys" \
+       --virtual-path /0 \
+       --output extracted/exefs
+     ```
+   - Hợp nhất Base Program NCA và Update Program NCA để lấy RomFS hoàn chỉnh (`merge-nca`):
+     ```sh
+     uv run nsl merge-nca \
+       --base extracted/base/<program>.nca \
+       --patch extracted/update/<program>.nca \
+       --output extracted/merged_romfs
+     ```
+     *(Tự động sử dụng `~/.switch/prod.keys` nếu không truyền `--keyset`, có thể thêm `--tik` nếu có file ticket)*.
+   - *Lưu ý về Title Key (eShop):* Đảm bảo file `title.keys` đã có trong `~/.switch/` để CLI tự động áp dụng khóa giải mã cho Program NCA. Không gọi lệnh công cụ bên ngoài trực tiếp.
 
 ## Bước 3: Tìm file text
 
@@ -34,8 +57,6 @@ Mở thư mục `romfs` và tìm các định dạng thường gặp:
 | `.msbt/.msbp` (game Nintendo) | Kuriimu2, MSBT Editor |
 | `.csv/.json/.xml/.txt` | Notepad++ |
 | `.bin/.dat` tự chế | HxD, tool riêng của cộng đồng |
-
-Tìm trên **GitHub/GBAtemp/Romhacking.net** xem game đó đã có tool hoặc dự án Việt hoá/ngôn ngữ khác chưa, vì nhiều game có sẵn tool trích/nhập text.
 
 ## Bước 4: Dịch và xử lý font
 
