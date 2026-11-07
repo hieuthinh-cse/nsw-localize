@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build game.win"
+  short_description: "Merge Switch base/update RomFS into game.win"
+  default_prompt: "Build a merged game.win from a base/update NSP pair or already-extracted Program NCAs."

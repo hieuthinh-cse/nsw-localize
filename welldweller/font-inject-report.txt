@@ -1,0 +1,6 @@
+Target before: fonts=17, textures=188, pages=2771
+fnt_default: glyphs=263, texture=FontMod Texture 188 1024x512, page=FontMod Page 2771
+fnt_default2: glyphs=259, texture=FontMod Texture 189 2048x1024, page=FontMod Page 2772
+fnt_default3: glyphs=263, texture=FontMod Texture 190 1024x1024, page=FontMod Page 2773
+fnt_title: glyphs=258, texture=FontMod Texture 191 2048x4096, page=FontMod Page 2774
+Target after: fonts=17, textures=192, pages=2775

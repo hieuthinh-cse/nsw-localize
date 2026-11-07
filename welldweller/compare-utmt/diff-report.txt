@@ -1,0 +1,46 @@
+﻿=== SO SÁNH GIỮA BẢN ATMOSPHERE VÀ BẢN GỐC (ORIGINAL 1.0.2) ===
+Atmosphere Data File: C:\Users\MintO\code\localize\welldweller\atmosphere\contents\0100217023F6C000\romfs\game.win
+Original Data File:   C:\Users\MintO\code\localize\welldweller\original-1.0.2\game.win
+
+--- 1. STRINGS ---
+Original Strings:   43439
+Atmosphere Strings: 43439
+  -> Không có chuỗi nào bị thay đổi nội dung ở cùng index.
+
+--- 2. EMBEDDED TEXTURES ---
+Original Textures:   188
+Atmosphere Textures: 192
+  -> Có 4 embedded texture mới được thêm vào (Index từ 188 đến 191).
+
+--- 3. TEXTURE PAGE ITEMS ---
+Original TPItems:   2766
+Atmosphere TPItems: 2770
+  -> Thêm 4 texture page items mới:
+    [TPItem #2766] TargetX: 0, TargetY: 0, Width: 1024, Height: 512, Tex: Texture 188
+    [TPItem #2767] TargetX: 0, TargetY: 0, Width: 2048, Height: 1024, Tex: Texture 189
+    [TPItem #2768] TargetX: 0, TargetY: 0, Width: 1024, Height: 1024, Tex: Texture 190
+    [TPItem #2769] TargetX: 0, TargetY: 0, Width: 2048, Height: 4096, Tex: Texture 191
+
+--- 4. FONTS ---
+Original Fonts:   17
+Atmosphere Fonts: 17
+  [Font THAY ĐỔI]: fnt_default - Glyphs: 153 -> 263; Texture: PageItem 401 -> PageItem 2766;
+    -> Thêm 110 ký tự mới: ÌÒÙÝìòýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾ...
+  [Font THAY ĐỔI]: fnt_default2 - Glyphs: 147 -> 259; Texture: PageItem 398 -> PageItem 2767;
+    -> Thêm 112 ký tự mới: ÌÒÙÝìòýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾ...
+  [Font THAY ĐỔI]: fnt_default3 - Glyphs: 153 -> 263; Texture: PageItem 399 -> PageItem 2768;
+    -> Thêm 110 ký tự mới: ÌÒÙÝìòýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾ...
+  [Font THAY ĐỔI]: fnt_title - Glyphs: 146 -> 258; Texture: PageItem 394 -> PageItem 2769;
+    -> Thêm 112 ký tự mới: ÌÒÙÝìòýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾ...
+
+--- 5. SPRITES ---
+Original Sprites:   2012
+Atmosphere Sprites: 2012
+
+--- 6. SOUNDS ---
+Original Sounds:   563
+Atmosphere Sounds: 563
+
+=== SO SÁNH TRANSLATIONS.INI ===
+Original translations.ini: 14837 dòng (921673 bytes)
+Atmosphere translations.ini: 16604 dòng (1040181 bytes)

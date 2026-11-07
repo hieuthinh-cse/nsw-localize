@@ -1,0 +1,4 @@
+# Local Nintendo Switch decryption keys must not be committed.
+prod.keys
+title.keys
+.agents/skills/switch-nca-unpack/keys/
