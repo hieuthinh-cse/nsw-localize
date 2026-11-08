@@ -1,0 +1,8 @@
+name: 9 sols
+version: 1
+forum_post_id: 1568878370274672723
+game:
+  input:
+  - base: ./rom/base/
+  - update: ./rom/update/
+  output: ./output/

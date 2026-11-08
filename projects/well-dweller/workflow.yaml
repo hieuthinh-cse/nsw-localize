@@ -1,0 +1,7 @@
+name: well-dweller
+version: 1
+game:
+  input:
+  - base: ./rom/base/
+  - update: ./rom/update/
+  output: ./output/

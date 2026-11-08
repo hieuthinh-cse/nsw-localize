@@ -1,0 +1,7 @@
+name: 9sols
+version: 1
+game:
+  input:
+  - base: ./rom/base/
+  - update: ./rom/update/
+  output: ./output/

@@ -94,3 +94,51 @@ Không cần game hoặc key thật để chạy test vì process `nstool` đư�
 ```sh
 uv run python -m unittest discover -s tests -v
 ```
+
+## Discord Bot (`nsl-bot`)
+
+Bot Discord hỗ trợ slash command `/create` để tự động khởi tạo thư mục dự án Việt hoá bên dưới `projects/`.
+
+### Thiết lập Discord Bot
+
+1. Tạo một ứng dụng và Bot trên [Discord Developer Portal](https://discord.com/developers/applications).
+2. Phân quyền và phạm vi bot:
+   - Scopes: `bot`, `applications.commands`
+   - Quyền tối thiểu: `View Channels`, `Send Messages`, `Create Public Threads`, `Send Messages in Threads`, `Use Application Commands`
+3. Mời bot vào server (guild) của bạn.
+
+### Biến môi trường
+
+Bot hỗ trợ tự động nạp cấu hình từ file `.env` (thông qua `python-dotenv`). Nếu biến môi trường hệ thống đã được `export` sẵn, hệ thống sẽ ưu tiên giá trị từ môi trường thay vì file `.env`. Bạn có thể sao chép file `.env.example` thành `.env` để cấu hình:
+
+```sh
+cp .env.example .env
+```
+
+Các biến môi trường hỗ trợ:
+
+- `DISCORD_TOKEN`: Token của Discord bot (bắt buộc).
+- `DISCORD_CREATE_ROLE_IDS`: Danh sách ID vai trò (role) được phép tạo dự án và tương tác với bot, phân cách bởi dấu phẩy (bắt buộc, ví dụ `123456789012345678,987654321098765432`). Thành viên có quyền Administrator trên server sẽ luôn được cấp phép mà không cần role này.
+- `DISCORD_LOCALIZE_NSW_CHANNEL_ID`: ID của kênh Forum trên server Discord dùng để tạo bài viết (post/thread) thảo luận cho dự án (bắt buộc, ví dụ `1568872535125393458`).
+- `PROJECTS_ROOT`: Thư mục gốc chứa các dự án (không bắt buộc, mặc định là `./projects`).
+
+### Tương tác trong Forum Post
+
+- Khi Administrator hoặc thành viên có role được cấp quyền trong `DISCORD_CREATE_ROLE_IDS` tag/mention bot (@Bot) bên trong bất kỳ bài viết/thread nào thuộc kênh Forum đã cấu hình, bot sẽ phản hồi lại lời chào (`hi`) kèm trích dẫn tag người gửi.
+- Các mention từ người không có quyền hoặc ngoài kênh Forum sẽ được giữ im lặng.
+
+### Chạy Bot
+
+Khởi động bot bằng lệnh:
+
+```sh
+uv run nsl-bot
+```
+
+Hoặc:
+
+```sh
+uv run python -m nsw_localize.bot
+```
+
+Khi chạy thiếu biến môi trường cần thiết, lệnh sẽ báo lỗi cấu hình và dừng lại để đảm bảo an toàn.
