@@ -20,7 +20,18 @@ uv run nsl unpack --help
 uv run nsl unpack nsp --help
 uv run nsl unpack nca --help
 uv run nsl merge-nca --help
+uv run nsl add-title-key --help
 ```
+
+## Thêm title key từ ticket
+
+Để thêm title key của ticket vào keyset Switch mặc định:
+
+```sh
+uv run nsl add-title-key --tik "path/to/game.tik"
+```
+
+CLI ghi vào `.switch/title.keys` trong thư mục home của người dùng: `%USERPROFILE%\\.switch\\title.keys` trên Windows và `~/.switch/title.keys` trên macOS/Linux. Có thể chỉ định file đích riêng bằng `--output`. Nếu Rights ID đã tồn tại với key khác, lệnh sẽ dừng; chỉ dùng `--force` khi muốn thay thế có chủ ý. Lệnh nhận ticket, không cần truyền NCA và không in giá trị title key.
 
 ## Trích xuất NSP
 
@@ -46,6 +57,16 @@ uv run nsl unpack nca extracted/game/program.nca \
   --output extracted/romfs
 ```
 
+Nếu NCA cần title key từ ticket tương ứng, truyền thêm `--tik`. CLI truyền
+ticket trực tiếp cho `nstool`, không tạo hoặc sửa keyset tạm:
+
+```sh
+uv run nsl unpack nca extracted/game/program.nca \
+  --keyset /path/to/prod.keys \
+  --tik extracted/game/program.tik \
+  --output extracted/romfs
+```
+
 Dùng `--virtual-path` để trích xuất một path/partition cụ thể theo cú pháp của `nstool`, ví dụ partition `/0`:
 
 ```sh
@@ -66,16 +87,19 @@ uv run nsl merge-nca \
   --output extracted/merged_romfs
 ```
 
-Nếu không truyền `--keyset`, CLI sẽ tự động tìm `~/.switch/prod.keys`. Bạn cũng có thể truyền rõ:
+Nếu không truyền `--keyset`, CLI sẽ tự động tìm `~/.switch/prod.keys`. Với eShop NCA, nên cung cấp ticket của cả base và update; CLI sẽ tạo keyset tạm cho đúng một lần chạy và tự xoá, không sửa `~/.switch/title.keys`:
 
 ```sh
 uv run nsl merge-nca \
   --base extracted/base/program.nca \
   --patch extracted/update/program.nca \
   --keyset /path/to/prod.keys \
-  --tik extracted/update/patch.tik \
+  --base-tik extracted/base/base.tik \
+  --patch-tik extracted/update/patch.tik \
   --output extracted/merged_romfs
 ```
+
+`--tik` vẫn được giữ làm alias tương thích cho ticket update khi title key base đã có trong môi trường NSTool. Nếu thiếu một ticket trong workflow explicit, lệnh dừng trước khi gọi NSTool và chỉ báo đường dẫn/loại input, không in title-key.
 
 ## An toàn khi ghi file
 

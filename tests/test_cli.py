@@ -26,6 +26,13 @@ class CliTests(unittest.TestCase):
         self.assertIn("unpack", stdout.getvalue())
         self.assertIn("merge-nca", stdout.getvalue())
 
+        stdout = io.StringIO()
+        with self.assertRaises(SystemExit) as exit_check, redirect_stdout(stdout):
+            parser.parse_args(["add-title-key", "--help"])
+        self.assertEqual(exit_check.exception.code, 0)
+        self.assertIn("--tik", stdout.getvalue())
+        self.assertIn("--force", stdout.getvalue())
+
         # Test unpack help
         stdout = io.StringIO()
         with self.assertRaises(SystemExit) as exit_check, redirect_stdout(stdout):
@@ -91,6 +98,44 @@ class CliTests(unittest.TestCase):
         self.assertEqual(exit_code, 2)
         mocked_run.assert_not_called()
         self.assertIn("existing regular file", stderr.getvalue())
+
+    def test_add_title_key_writes_entry_without_printing_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            ticket = root / "game.tik"
+            ticket_data = bytearray(0x2B0)
+            ticket_data[0x2A0 : 0x2A0 + 16] = b"A" * 16
+            ticket_data[0x180 : 0x180 + 16] = b"B" * 16
+            ticket.write_bytes(ticket_data)
+            output = root / ".switch" / "title.keys"
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["add-title-key", "--tik", str(ticket), "--output", str(output)])
+            self.assertEqual(exit_code, 0)
+            self.assertIn((b"A" * 16).hex().upper(), stdout.getvalue())
+            self.assertNotIn((b"B" * 16).hex().upper(), stdout.getvalue())
+            self.assertIn(
+                (b"A" * 16).hex().upper() + " = " + (b"B" * 16).hex().upper(),
+                output.read_text(encoding="utf-8"),
+            )
+
+    def test_add_title_key_conflict_is_secret_safe(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            ticket = root / "game.tik"
+            ticket_data = bytearray(0x2B0)
+            ticket_data[0x2A0 : 0x2A0 + 16] = b"A" * 16
+            ticket_data[0x180 : 0x180 + 16] = b"B" * 16
+            ticket.write_bytes(ticket_data)
+            output = root / "title.keys"
+            output.write_text("41" * 16 + " = " + "C0" * 16 + "\n", encoding="utf-8")
+            stderr = io.StringIO()
+            with redirect_stderr(stderr):
+                exit_code = main(["add-title-key", "--tik", str(ticket), "--output", str(output)])
+            self.assertEqual(exit_code, 2)
+            self.assertIn("Conflicting", stderr.getvalue())
+            self.assertNotIn((b"B" * 16).hex().upper(), stderr.getvalue())
+            self.assertNotIn("C0" * 16, stderr.getvalue())
 
     def test_non_empty_destination_does_not_invoke_runner_without_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -159,6 +204,71 @@ class CliTests(unittest.TestCase):
             self.assertEqual(mocked_run.call_args_list[0].args[1][3], "/")
             self.assertEqual(mocked_run.call_args_list[1].args[1][3], "/0")
 
+    def test_nca_forwards_ticket_to_nstool(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            nca = root / "program.nca"
+            keyset = root / "prod.keys"
+            ticket = root / "program.tik"
+            nca.write_bytes(b"nca")
+            keyset.write_text("key", encoding="utf-8")
+            ticket.write_bytes(b"ticket")
+
+            with (
+                patch("nsw_localize.cli.resolve_nstool", return_value=Path("/tool/nstool")),
+                patch("nsw_localize.cli.run_nstool") as mocked_run,
+            ):
+                self.assertEqual(
+                    main(
+                        [
+                            "unpack",
+                            "nca",
+                            str(nca),
+                            "--keyset",
+                            str(keyset),
+                            "--tik",
+                            str(ticket),
+                            "--output",
+                            str(root / "out"),
+                        ]
+                    ),
+                    0,
+                )
+
+            args = mocked_run.call_args.args[1]
+            self.assertIn("--tik", args)
+            self.assertIn(str(ticket.resolve()), args)
+
+    def test_nca_rejects_invalid_ticket_without_invoking_runner(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            nca = root / "program.nca"
+            keyset = root / "prod.keys"
+            invalid_ticket = root / "program.txt"
+            nca.write_bytes(b"nca")
+            keyset.write_text("key", encoding="utf-8")
+            invalid_ticket.write_text("not a ticket", encoding="utf-8")
+            stderr = io.StringIO()
+
+            with patch("nsw_localize.cli.run_nstool") as mocked_run, redirect_stderr(stderr):
+                exit_code = main(
+                    [
+                        "unpack",
+                        "nca",
+                        str(nca),
+                        "--keyset",
+                        str(keyset),
+                        "--tik",
+                        str(invalid_ticket),
+                        "--output",
+                        str(root / "out"),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            mocked_run.assert_not_called()
+            self.assertIn("Ticket", stderr.getvalue())
+
     def test_missing_keyset_does_not_invoke_runner(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -200,9 +310,7 @@ class CliTests(unittest.TestCase):
                 ),
                 redirect_stderr(stderr),
             ):
-                exit_code = main(
-                    ["unpack", "nsp", str(package), "--output", str(root / "out")]
-                )
+                exit_code = main(["unpack", "nsp", str(package), "--output", str(root / "out")])
 
             self.assertEqual(exit_code, 2)
             self.assertIn("bad input", stderr.getvalue())

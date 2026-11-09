@@ -28,6 +28,7 @@ Locate the Program NCA (typically the largest `.nca` file, excluding `.cnmt.nca`
   ```sh
   uv run nsl unpack nca "extracted/nsp_out/<program>.nca" \
     --keyset "path/to/prod.keys" \
+    --tik "extracted/nsp_out/<program>.tik" \
     --virtual-path /1 \
     --output extracted/romfs
   ```
@@ -36,9 +37,14 @@ Locate the Program NCA (typically the largest `.nca` file, excluding `.cnmt.nca`
   ```sh
   uv run nsl unpack nca "extracted/nsp_out/<program>.nca" \
     --keyset "path/to/prod.keys" \
+    --tik "extracted/nsp_out/<program>.tik" \
     --virtual-path /0 \
     --output extracted/exefs
   ```
+
+When the matching ticket is available, pass it with `--tik`. The ticket is
+forwarded directly to NSTool; this workflow does not create an ephemeral
+keyset or modify `~/.switch/title.keys`.
 
 Add `--overwrite` if writing into an existing directory.
 

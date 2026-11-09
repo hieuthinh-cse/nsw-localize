@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 
 class NstoolError(RuntimeError):
@@ -20,6 +21,14 @@ class ValidationError(NstoolError):
 
 class NstoolProcessError(NstoolError):
     """Raised when NSTool terminates unsuccessfully."""
+
+
+_SECRET_HEX = re.compile(r"(?i)(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])")
+
+
+def _safe_diagnostic(value: str) -> str:
+    """Avoid exposing ticket/title-key-sized hex values from external diagnostics."""
+    return _SECRET_HEX.sub("<redacted-key>", value)
 
 
 @dataclass(frozen=True)
@@ -73,7 +82,13 @@ def build_nca_extract_args(
     return args
 
 
-def run_nstool(executable: Path, arguments: Sequence[str], *, operation: str) -> NstoolResult:
+def run_nstool(
+    executable: Path,
+    arguments: Sequence[str],
+    *,
+    operation: str,
+    environment: Optional[Mapping[str, str]] = None,
+) -> NstoolResult:
     """Run NSTool without a shell and return its captured output.
 
     Error messages deliberately omit command arguments because a keyset path may
@@ -84,11 +99,13 @@ def run_nstool(executable: Path, arguments: Sequence[str], *, operation: str) ->
         check=False,
         capture_output=True,
         text=True,
+        env=dict(environment) if environment is not None else None,
     )
     if completed.returncode != 0:
         diagnostic = completed.stderr.strip() or completed.stdout.strip()
         if not diagnostic:
             diagnostic = "NSTool did not provide a diagnostic."
+        diagnostic = _safe_diagnostic(diagnostic)
         raise NstoolProcessError(
             f"NSTool {operation} failed with exit code {completed.returncode}: {diagnostic}"
         )

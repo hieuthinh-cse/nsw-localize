@@ -36,7 +36,9 @@ uv run nsl merge-nca \
 
 **Optional Flags:**
 - `--keyset "path/to/prod.keys"`: Specify keyset path (defaults automatically to `~/.switch/prod.keys` if omitted).
-- `--tik "extracted/update_nsp/<ticket>.tik"`: Pass ticket file for title key decryption if needed.
+- `--base-tik "extracted/base_nsp/<ticket>.tik"`: Ticket supplying the base NCA title key.
+- `--patch-tik "extracted/update_nsp/<ticket>.tik"`: Ticket supplying the update NCA title key. The CLI creates a secure temporary combined keyset and removes it after the run.
+- `--tik "extracted/update_nsp/<ticket>.tik"`: Compatibility alias for `--patch-tik` when base title-key discovery is already configured.
 - `--overwrite`: Permit writing into an existing non-empty directory.
 
 The result in `extracted/merged_romfs` contains the complete, merged RomFS directory structure.

@@ -26,6 +26,7 @@ Dự án đã xây dựng sẵn CLI `nsl` (wrapper chuẩn hóa quanh engine gi�
      ```sh
      uv run nsl unpack nca extracted/nsp_out/<program>.nca \
        --keyset "path/to/prod.keys" \
+       --tik "extracted/nsp_out/<program>.tik" \
        --virtual-path /1 \
        --output extracted/romfs
      ```
@@ -33,6 +34,7 @@ Dự án đã xây dựng sẵn CLI `nsl` (wrapper chuẩn hóa quanh engine gi�
      ```sh
      uv run nsl unpack nca extracted/nsp_out/<program>.nca \
        --keyset "path/to/prod.keys" \
+       --tik "extracted/nsp_out/<program>.tik" \
        --virtual-path /0 \
        --output extracted/exefs
      ```
@@ -43,8 +45,18 @@ Dự án đã xây dựng sẵn CLI `nsl` (wrapper chuẩn hóa quanh engine gi�
        --patch extracted/update/<program>.nca \
        --output extracted/merged_romfs
      ```
-     *(Tự động sử dụng `~/.switch/prod.keys` nếu không truyền `--keyset`, có thể thêm `--tik` nếu có file ticket)*.
+     *(Tự động sử dụng `~/.switch/prod.keys` nếu không truyền `--keyset`; với `unpack nca`, truyền ticket tương ứng bằng `--tik`. `merge-nca` dùng `--base-tik` và `--patch-tik` khi cần cả hai title key.)*
    - *Lưu ý về Title Key (eShop):* Đảm bảo file `title.keys` đã có trong `~/.switch/` để CLI tự động áp dụng khóa giải mã cho Program NCA. Không gọi lệnh công cụ bên ngoài trực tiếp.
+
+### Thêm title key từ ticket
+
+Khi cần thêm title key persistent từ ticket, dùng:
+
+```sh
+uv run nsl add-title-key --tik "path/to/game.tik"
+```
+
+Mặc định CLI ghi vào `.switch/title.keys` trong home directory của người dùng (`%USERPROFILE%\\.switch\\title.keys` trên Windows, `~/.switch/title.keys` trên macOS/Linux). Có thể dùng `--output` để chọn file khác và `--force` để thay thế entry xung đột sau khi kiểm tra cẩn thận. Không truyền NCA vì title key được lấy từ ticket; không in hoặc commit giá trị key.
 
 ## Bước 3: Tìm file text
 

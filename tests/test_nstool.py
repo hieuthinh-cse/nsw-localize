@@ -255,6 +255,7 @@ class NstoolProcessTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
+            env=None,
         )
 
     @patch("nsw_localize.nstool.subprocess.run")
