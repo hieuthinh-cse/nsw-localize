@@ -13,3 +13,5 @@ extracted/
 
 .env
 *.nsp
+*.rar
+output/

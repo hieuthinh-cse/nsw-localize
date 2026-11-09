@@ -1,5 +1,6 @@
-name: 9sols
+name: chained echo
 version: 1
+forum_post_id: 1569265912186540093
 game:
   input:
   - base: ./rom/base/
